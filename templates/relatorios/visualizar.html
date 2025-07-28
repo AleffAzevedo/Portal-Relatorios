@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ relatorio.nome }} - Portal de Relatórios{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-house"></i> Dashboard
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ relatorio.nome }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-2">
+                <i class="bi bi-file-earmark-text text-primary"></i>
+                {{ relatorio.nome }}
+            </h1>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge bg-primary">{{ relatorio.get_tipo_display }}</span>
+                {% if relatorio.ativo %}
+                <span class="badge bg-success">Ativo</span>
+                {% else %}
+                <span class="badge bg-secondary">Inativo</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if relatorio.arquivo %}
+            <a href="{% url 'download_relatorio' relatorio.id %}" 
+               class="btn btn-success">
+                <i class="bi bi-download"></i> Download
+            </a>
+            {% endif %}
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+    
+    <!-- Conteúdo Principal -->
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Descrição -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Descrição
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if relatorio.descricao %}
+                    <p class="mb-0">{{ relatorio.descricao|linebreaks }}</p>
+                    {% else %}
+                    <p class="text-muted mb-0">Nenhuma descrição fornecida.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Arquivo -->
+            {% if relatorio.arquivo %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark"></i> Arquivo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">{{ relatorio.arquivo.name|slice:"10:" }}</h6>
+                            <p class="text-muted mb-0">
+                                Tamanho: {{ relatorio.get_tamanho_arquivo }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="{% url 'download_relatorio' relatorio.id %}" 
+                               class="btn btn-outline-success">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center py-4">
+                    <i class="bi bi-file-earmark-x text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3 text-muted">Nenhum arquivo anexado</h5>
+                    <p class="text-muted">Este relatório não possui arquivo para download.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar com Informações -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-square"></i> Informações
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Tipo</label>
+                        <p class="mb-0">{{ relatorio.get_tipo_display }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Criado por</label>
+                        <p class="mb-0">
+                            <i class="bi bi-person-circle"></i>
+                            {{ relatorio.criado_por.get_full_name|default:relatorio.criado_por.username }}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Data de Criação</label>
+                        <p class="mb-0">
+                            <i class="bi bi-calendar"></i>
+                            {{ relatorio.data_criacao|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Status</label>
+                        <p class="mb-0">
+                            {% if relatorio.ativo %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Ativo
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-x-circle"></i> Inativo
+                            </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    {% if relatorio.arquivo %}
+                    <div class="mb-0">
+                        <label class="form-label text-muted small">Tamanho do Arquivo</label>
+                        <p class="mb-0">
+                            <i class="bi bi-hdd"></i>
+                            {{ relatorio.get_tamanho_arquivo }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Ações Rápidas -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if relatorio.arquivo %}
+                        <a href="{% url 'download_relatorio' relatorio.id %}" 
+                           class="btn btn-success btn-sm">
+                            <i class="bi bi-download"></i> Download do Arquivo
+                        </a>
+                        {% endif %}
+                        
+                        {% if user.is_staff %}
+                        <a href="{% url 'admin:relatorios_relatorio_change' relatorio.id %}" 
+                           class="btn btn-outline-primary btn-sm" 
+                           target="_blank">
+                            <i class="bi bi-pencil"></i> Editar no Admin
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'dashboard' %}" 
+                           class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
